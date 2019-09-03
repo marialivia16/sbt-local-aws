@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Example cloudformation
+
+Parameters:
+  AppName:
+    Default: Example
+    Description: Name of the app
+    Type: String
+  Environment:
+    AllowedValues:
+      - CODE
+      - PROD
+    Default: CODE
+    Description: Environment name
+    Type: String
+
+Resources:
+
+  UserByIdDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${AppName}-users-byid-${Environment}
+      AttributeDefinitions:
+        - AttributeName: UserId
+          AttributeType: S
+        - AttributeName: PermissionKey
+          AttributeType: S
+        - AttributeName: PrimaryEmail
+          AttributeType: S
+      KeySchema:
+        - AttributeName: UserId
+          KeyType: HASH
+        - AttributeName: PermissionKey
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      SSESpecification:
+        SSEEnabled: true
+      GlobalSecondaryIndexes:
+        - IndexName: "UserId-index"
+          KeySchema:
+            - AttributeName: UserId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 1
+            WriteCapacityUnits: 1
+        - IndexName: "PrimaryEmail-index"
+          KeySchema:
+            - AttributeName: PrimaryEmail
+              KeyType: HASH
+            - AttributeName: PermissionKey
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 1
+            WriteCapacityUnits: 1
+
+  GroupsByIdDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      tableName: !Sub ${AppName}-groups-byid-${Environment}
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: groupId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: groupId
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 6
+        WriteCapacityUnits: 1
+      SSESpecification:
+        SSEEnabled: true
+      
+    
+

@@ -11,8 +11,9 @@ resolvers += Resolver.sonatypeRepo("releases")
 
 
 libraryDependencies ++= Seq(
-"io.circe" %% "circe-yaml" % "0.9.0",
-"com.beachape" %% "enumeratum-circe" % "1.5.19"
+  "io.circe" %% "circe-yaml" % "0.9.0",
+  "com.beachape" %% "enumeratum-circe" % "1.5.19",
+  "org.scalatest" %% "scalatest" % "3.0.8" % "test"
 )
 
 addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.8")

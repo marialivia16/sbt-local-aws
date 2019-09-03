@@ -1,14 +1,16 @@
+package models
+
 import cats.Semigroupal
 import cats.data.{NonEmptyList, Validated, ValidatedNel}
 import cats.instances.either._
 import cats.instances.list._
+import cats.instances.option._
 import cats.syntax.bifunctor._
 import cats.syntax.either._
+import cats.syntax.option._
 import cats.syntax.traverse._
 import enumeratum._
 import io.circe.{Error, Json, ParsingFailure}
-import cats.syntax.option._
-import cats.instances.option._
 
 sealed abstract class SupportedService(val awsName: String) extends EnumEntry {
   def createCommand(json: Json, dictionary: Dictionary = Dictionary(Map.empty)): Either[NonEmptyList[Error], String]
@@ -16,7 +18,7 @@ sealed abstract class SupportedService(val awsName: String) extends EnumEntry {
 
 object SupportedService extends Enum[SupportedService] with CirceEnum[SupportedService] {
 
-  def withAwsName(awsName: String) : Option[SupportedService] = values find (_.awsName == awsName)
+  def withAwsName(awsName: String): Option[SupportedService] = values find (_.awsName == awsName)
 
   case object DynamoDB extends SupportedService(awsName = "AWS::DynamoDB::Table") {
 
