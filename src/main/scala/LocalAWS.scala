@@ -1,5 +1,6 @@
 import sbt._
 
+import sys.process._
 import scala.collection.immutable.Seq
 
 object LocalAWS extends AutoPlugin {
@@ -11,11 +12,16 @@ object LocalAWS extends AutoPlugin {
 
   override lazy val projectSettings = Seq(
     createLocalAWS := {
-      YMLParser.getAWSServices(new File("cf.yml"))
+      //Spin up docker with localstack image
+      "docker run localstack/localstack".!
+
+      //TODO: install localaws cli
+      "pip install awscli-local".!
+
+      //Parse cf
+      YMLParser.getSupportedServices(new File("cf.yml"))
+
+      //TODO: Execute aws cli commands
     }
   )
 }
-
-//object PluginApp extends App {
-//  YMLParser.getAWSServices(new File("cf.yml"))
-//}
