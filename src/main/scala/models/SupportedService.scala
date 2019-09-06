@@ -1,7 +1,7 @@
 package models
 
 import cats.Semigroupal
-import cats.data.{NonEmptyList, Validated, ValidatedNel}
+import cats.data.{NonEmptyList, ValidatedNel}
 import cats.instances.either._
 import cats.instances.list._
 import cats.instances.option._
@@ -13,7 +13,7 @@ import enumeratum._
 import io.circe.{Error, Json, ParsingFailure}
 
 sealed abstract class SupportedService(val awsName: String) extends EnumEntry {
-  def createCommand(json: Json, dictionary: Dictionary = Dictionary(Map.empty)): Either[NonEmptyList[Error], String]
+  def createCommand(json: Json): Either[NonEmptyList[Error], String]
 }
 
 object SupportedService extends Enum[SupportedService] with CirceEnum[SupportedService] {
@@ -22,44 +22,34 @@ object SupportedService extends Enum[SupportedService] with CirceEnum[SupportedS
 
   case object DynamoDB extends SupportedService(awsName = "AWS::DynamoDB::Table") {
 
-    override def createCommand(json: Json, dictionary: Dictionary): Either[NonEmptyList[Error], String] = {
+    override def createCommand(json: Json): Either[NonEmptyList[Error], String] = {
       val propertiesJson = json.hcursor.downField("Properties").focus.get
       Semigroupal.map5[ValidatedNel[Error, ?], String, String, String, Option[String], String, String](
-        extractTableName(propertiesJson, dictionary),
+        extractTableName(propertiesJson),
         extractAttributeDefinitions(propertiesJson),
         extractKeySchema(propertiesJson),
         extractSecondaryIndexes(propertiesJson).sequence[ValidatedNel[Error, ?], String],
         extractProvisionedThroughput(propertiesJson)
       ) {
         case (tableName, attributeDefinitions, keySchema, gsi, provisionedThroughput) =>
-          val g: String = gsi.fold[String]("")(g => s"""--global-secondary-indexes $g \\""")
+          val globalSecondaryIndexes: String = gsi.fold[String]("")(g => s"""--global-secondary-indexes $g \\""")
 
-          s"""
-             |awslocal dynamodb create-table \\
-             |--table-name $tableName \\
-             |--attribute-definitions $attributeDefinitions \\
-             |--key-schema $keySchema \\
-             |$g
-             |--provisioned-throughput $provisionedThroughput \\
-             |--region eu-west-1
-            """.stripMargin
+          List(
+            "awslocal dynamodb create-table \\",
+            s"--table-name $tableName \\",
+            s"--attribute-definitions $attributeDefinitions \\",
+            s"--key-schema $keySchema \\",
+            globalSecondaryIndexes,
+            s"--provisioned-throughput $provisionedThroughput \\",
+            s"--region eu-west-1"
+          ).filter(!_.isEmpty).mkString("\n")
       }.toEither
     }
 
-    val RegExPattern = "\\$\\{([a-zA-Z]+)}".r("name")
-
-    private def extractFieldName(json: Json, dictionary: Dictionary): Validated[NonEmptyList[Error], String] = {
-      json.as[String].toValidatedNel.findValid {
-        json.hcursor.downField("Sub").as[String].map(
-          RegExPattern.replaceAllIn(_, m => dictionary.entries(m.group("name")))
-        ).toValidatedNel
-      }
-    }
-
-    private def extractTableName(json: Json, dictionary: Dictionary): ValidatedNel[Error, String] =
+    private def extractTableName(json: Json): ValidatedNel[Error, String] =
       json.hcursor.downField("TableName")
         .focus.toValidNel(ParsingFailure(s"Missing field TableName on $json", new IllegalStateException))
-        .andThen(extractFieldName(_, dictionary))
+        .andThen(_.as[String].toValidatedNel)
 
     private def extractAttributeDefinitions(json: Json): ValidatedNel[Error, String] =
       json.hcursor.downField("AttributeDefinitions").as[List[Json]].toValidatedNel.andThen { jsonList =>
@@ -113,7 +103,7 @@ object SupportedService extends Enum[SupportedService] with CirceEnum[SupportedS
   }
 
   case object S3 extends SupportedService(awsName = "AWS::S3::Bucket") {
-    override def createCommand(json: Json, dictionary: Dictionary): Either[NonEmptyList[Error], String] = ???
+    override def createCommand(json: Json): Either[NonEmptyList[Error], String] = ???
   }
 
   val values = findValues

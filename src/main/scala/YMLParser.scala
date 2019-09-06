@@ -24,7 +24,8 @@ object YMLParser {
           resourceJson <- resourcesJsonObject.values
           resourceType <- resourceJson.hcursor.downField("Type").as[String].toList
           service <- SupportedService.withAwsName(resourceType).toList
-          command <- List(service.createCommand(resourceJson, parameters))
+          transformedResourceJson = Dictionary.applyDictionary(resourceJson, parameters)
+          command <- List(service.createCommand(transformedResourceJson))
         } yield command
 
       commands

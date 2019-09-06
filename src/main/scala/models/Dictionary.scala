@@ -1,6 +1,8 @@
 package models
 
-import io.circe.{Json, JsonObject}
+import cats.data.{NonEmptyList, Validated}
+import cats.syntax.either._
+import io.circe.{Error, Json, JsonObject}
 
 final case class Dictionary(entries: Map[String, String])
 
@@ -22,22 +24,21 @@ object Dictionary {
     )
   }
 
-  def replaceInString(json: Json, dictionary: Dictionary): Json =
-    if (json.isString) {
-      val jsonStr = json.asString.get
-      Json.fromString(dictionary.entries.foldLeft(jsonStr) { case (acc, (key, value)) =>
-        val toReplace = s"""$${$key}"""
-        acc.replace(toReplace, value)
-      })
-    } else json
-
   def stringTransform(dictionary: Dictionary): String => String = (jsonStr: String) =>
     dictionary.entries.foldLeft(jsonStr) { case (acc, (key, value)) =>
       val toReplace = s"""$${$key}"""
       acc.replace(toReplace, value)
     }
 
-  def transform(js: Json, f: String => String): Json = js
+//  private def extractFieldName(json: Json, dictionary: Dictionary): Validated[NonEmptyList[Error], String] = {
+//    json.as[String].toValidatedNel.findValid {
+//      json.hcursor.downField("Sub").as[String].map(
+//        RegExPattern.replaceAllIn(_, m => dictionary.entries(m.group("name")))
+//      ).toValidatedNel
+//    }
+//  }
+
+  private def transform(js: Json, f: String => String): Json = js
     .mapString(f)
     .mapArray(_.map(transform(_, f)))
     .mapObject(obj => {

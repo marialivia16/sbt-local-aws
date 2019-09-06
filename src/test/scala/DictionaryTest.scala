@@ -13,95 +13,94 @@ class DictionaryTest extends FlatSpec with Matchers {
   }
 
   it should "apply the dictionary in a string" in {
-    val result = Dictionary.replaceInString(Json.fromString("Some-${AppName}${AppName}-in-${Environment}"), dictionary)
+    val result = Dictionary.stringTransform(dictionary)("Some-${AppName}${AppName}-in-${Environment}")
 
-    result shouldBe Json.fromString("Some-ExampleExample-in-CODE")
+    result shouldBe "Some-ExampleExample-in-CODE"
   }
 
   it should "apply the dictionary in JSON" in {
     val jsonStr =
       """
-        |      "Properties" : {
-        |        "TableName" : {
-        |          "Sub" : "${AppName}-users-byid-${Environment}"
-        |        },
-        |        "AttributeDefinitions" : [
-        |          {
-        |            "AttributeName" : "UserId",
-        |            "AttributeType" : "S"
-        |          },
-        |          {
-        |            "AttributeName" : "PermissionKey",
-        |            "AttributeType" : "S"
-        |          },
-        |          {
-        |            "AttributeName" : "PrimaryEmail",
-        |            "AttributeType" : "S"
-        |          }
-        |        ],
-        |        "KeySchema" : [
-        |          {
-        |            "AttributeName" : "UserId",
-        |            "KeyType" : "HASH"
-        |          },
-        |          {
-        |            "AttributeName" : "PermissionKey",
-        |            "KeyType" : "RANGE"
-        |          }
-        |        ],
-        |        "ProvisionedThroughput" : {
-        |          "ReadCapacityUnits" : 1,
-        |          "WriteCapacityUnits" : 1
-        |        },
-        |        "SSESpecification" : {
-        |          "SSEEnabled" : true
-        |        }
-        |      }
+        | "Properties" : {
+        |   "TableName" : {
+        |     "Sub" : "${AppName}-users-byid-${Environment}"
+        |   },
+        |   "AttributeDefinitions" : [
+        |     {
+        |       "AttributeName" : "UserId",
+        |       "AttributeType" : "S"
+        |     },
+        |     {
+        |       "AttributeName" : "PermissionKey",
+        |       "AttributeType" : "S"
+        |     },
+        |     {
+        |       "AttributeName" : "PrimaryEmail",
+        |       "AttributeType" : "S"
+        |     }
+        |   ],
+        |   "KeySchema" : [
+        |     {
+        |       "AttributeName" : "UserId",
+        |       "KeyType" : "HASH"
+        |     },
+        |     {
+        |       "AttributeName" : "PermissionKey",
+        |       "KeyType" : "RANGE"
+        |     }
+        |   ],
+        |   "ProvisionedThroughput" : {
+        |     "ReadCapacityUnits" : 1,
+        |     "WriteCapacityUnits" : 1
+        |   },
+        |   "SSESpecification" : {
+        |     "SSEEnabled" : true
+        |   }
+        | }
       """.stripMargin
 
+    //TODO: remove the "Sub" keys
     val jsonStrExpected =
       """
-        |      "Properties" : {
-        |        "TableName" : "Example-users-byid-CODE",
-        |        "AttributeDefinitions" : [
-        |          {
-        |            "AttributeName" : "UserId",
-        |            "AttributeType" : "S"
-        |          },
-        |          {
-        |            "AttributeName" : "PermissionKey",
-        |            "AttributeType" : "S"
-        |          },
-        |          {
-        |            "AttributeName" : "PrimaryEmail",
-        |            "AttributeType" : "S"
-        |          }
-        |        ],
-        |        "KeySchema" : [
-        |          {
-        |            "AttributeName" : "UserId",
-        |            "KeyType" : "HASH"
-        |          },
-        |          {
-        |            "AttributeName" : "PermissionKey",
-        |            "KeyType" : "RANGE"
-        |          }
-        |        ],
-        |        "ProvisionedThroughput" : {
-        |          "ReadCapacityUnits" : 1,
-        |          "WriteCapacityUnits" : 1
-        |        },
-        |        "SSESpecification" : {
-        |          "SSEEnabled" : true
-        |        }
-        |      }
+        | "Properties" : {
+        |   "TableName" : { "Sub": "Example-users-byid-CODE" },
+        |   "AttributeDefinitions" : [
+        |     {
+        |       "AttributeName" : "UserId",
+        |       "AttributeType" : "S"
+        |     },
+        |     {
+        |       "AttributeName" : "PermissionKey",
+        |       "AttributeType" : "S"
+        |     },
+        |     {
+        |       "AttributeName" : "PrimaryEmail",
+        |       "AttributeType" : "S"
+        |     }
+        |   ],
+        |   "KeySchema" : [
+        |     {
+        |       "AttributeName" : "UserId",
+        |       "KeyType" : "HASH"
+        |     },
+        |     {
+        |       "AttributeName" : "PermissionKey",
+        |       "KeyType" : "RANGE"
+        |     }
+        |   ],
+        |   "ProvisionedThroughput" : {
+        |     "ReadCapacityUnits" : 1,
+        |     "WriteCapacityUnits" : 1
+        |   },
+        |   "SSESpecification" : {
+        |     "SSEEnabled" : true
+        |   }
+        | }
       """.stripMargin
 
     val jsonTransformed = Dictionary.applyDictionary(parser.parse(jsonStr).getOrElse(Json.Null), dictionary)
 
     val jsonExpected = parser.parse(jsonStrExpected).getOrElse(Json.Null)
-
-    println(jsonTransformed == jsonExpected)
 
     jsonTransformed shouldBe jsonExpected
   }
