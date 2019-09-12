@@ -59,11 +59,10 @@ class DictionaryTest extends FlatSpec with Matchers {
         | }
       """.stripMargin
 
-    //TODO: remove the "Sub" keys
     val jsonStrExpected =
       """
         | "Properties" : {
-        |   "TableName" : { "Sub": "Example-users-byid-CODE" },
+        |   "TableName" : "Example-users-byid-CODE",
         |   "AttributeDefinitions" : [
         |     {
         |       "AttributeName" : "UserId",

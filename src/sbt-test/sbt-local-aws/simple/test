@@ -1,0 +1,4 @@
+# to initialize parser with deps
+> compile
+> localAwsStart
+> localAwsStop

@@ -32,17 +32,17 @@ object SupportedService extends Enum[SupportedService] with CirceEnum[SupportedS
         extractProvisionedThroughput(propertiesJson)
       ) {
         case (tableName, attributeDefinitions, keySchema, gsi, provisionedThroughput) =>
-          val globalSecondaryIndexes: String = gsi.fold[String]("")(g => s"""--global-secondary-indexes $g \\""")
+          val globalSecondaryIndexes: String = gsi.fold[String]("")(g => s"""--global-secondary-indexes $g""")
 
           List(
-            "awslocal dynamodb create-table \\",
-            s"--table-name $tableName \\",
-            s"--attribute-definitions $attributeDefinitions \\",
-            s"--key-schema $keySchema \\",
+            "aws --endpoint-url=http://localhost:4569 dynamodb create-table",
+            s"--table-name $tableName",
+            s"--attribute-definitions $attributeDefinitions",
+            s"--key-schema $keySchema",
             globalSecondaryIndexes,
-            s"--provisioned-throughput $provisionedThroughput \\",
-            s"--region eu-west-1"
-          ).filter(!_.isEmpty).mkString("\n")
+            s"--provisioned-throughput $provisionedThroughput"
+//            s"--region eu-west-1"
+          ).filter(!_.isEmpty).mkString(" ")
       }.toEither
     }
 

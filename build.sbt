@@ -1,10 +1,4 @@
-name := "sbt-local-aws"
-
-version := "0.1"
-
 scalaVersion := "2.12.8"
-
-sbtPlugin := true
 
 resolvers += Resolver.sonatypeRepo("snapshots")
 resolvers += Resolver.sonatypeRepo("releases")
@@ -17,3 +11,15 @@ libraryDependencies ++= Seq(
 )
 
 addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.8")
+
+lazy val root = (project in file("."))
+  .enablePlugins(SbtPlugin)
+  .settings(
+    name := "sbt-local-aws",
+    organization := "marialivia.ch",
+    sbtPlugin := true,
+    scriptedLaunchOpts := { scriptedLaunchOpts.value ++
+      Seq("-Xmx1024M", "-Dplugin.version=" + version.value)
+    },
+    scriptedBufferLog := false
+  )
