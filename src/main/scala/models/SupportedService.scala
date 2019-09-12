@@ -82,7 +82,7 @@ object SupportedService extends Enum[SupportedService] with CirceEnum[SupportedS
 
     private def extractProjectionType(json: Json): ValidatedNel[Error, String] =
       json.hcursor.downField("Projection").downField("ProjectionType").as[String].toValidatedNel.map { projectionType =>
-        s"Projection={ProjectionType=$projectionType"
+        s"Projection={ProjectionType=$projectionType}"
       }
 
     private def extractSecondaryIndexes(json: Json): Option[ValidatedNel[Error, String]] =
@@ -96,7 +96,7 @@ object SupportedService extends Enum[SupportedService] with CirceEnum[SupportedS
           ) {
             case (indexName, keySchema, projectionType, provisionedThroughput) =>
               val formattedKeySchema = keySchema.split(" ").map(k => s"{$k}").mkString(",")
-              s"'IndexName=$indexName,KeySchema=[$formattedKeySchema],$projectionType,ProvisionedThroughput={$provisionedThroughput}'"
+              s"IndexName=$indexName,KeySchema=[$formattedKeySchema],$projectionType,ProvisionedThroughput={$provisionedThroughput}"
           }
         }.map(_.mkString(" "))
       }
