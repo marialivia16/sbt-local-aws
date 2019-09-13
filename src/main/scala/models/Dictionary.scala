@@ -5,9 +5,8 @@ import io.circe.{Json, JsonObject}
 final case class Dictionary(entries: Map[String, String])
 
 object Dictionary {
-//  private val RegExPattern = "\\$\\{([a-zA-Z]+)}".r("name")
 
-  def loadFromJson(json: Json): Dictionary = {
+  def apply(json: Json): Dictionary = {
     val parameters: List[(String, Json)] =
       for {
         parametersJson <- json.hcursor.downField("Parameters").focus.toList
@@ -22,18 +21,20 @@ object Dictionary {
     )
   }
 
-  def stringTransform(dictionary: Dictionary): String => String = (jsonStr: String) =>
+  def replace(json: Json, dictionary: Dictionary): Json = replace(json, stringReplace(dictionary))
+
+  def stringReplace(dictionary: Dictionary): String => String = (jsonStr: String) =>
     dictionary.entries.foldLeft(jsonStr) { case (acc, (key, value)) =>
       val toReplace = s"""$${$key}"""
       acc.replace(toReplace, value)
     }
 
-  private def transform(js: Json, f: String => String): Json = js
+  private def replace(js: Json, f: String => String): Json = js
     .mapString(f)
-    .mapArray(_.map(transform(_, f)))
+    .mapArray(_.map(replace(_, f)))
     .mapObject(obj => {
       val updatedObj = obj.toMap.map {
-        case (k, v) => f(k) -> transform(v, f)
+        case (k, v) => f(k) -> replace(v, f)
       }
       JsonObject.apply(updatedObj.toSeq: _*)
     })
@@ -43,7 +44,4 @@ object Dictionary {
         case fields             => Json.obj(fields :_*)
       }
     }
-
-  def applyDictionary(json: Json, dictionary: Dictionary): Json = transform(json, stringTransform(dictionary))
-
 }

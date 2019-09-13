@@ -3,7 +3,6 @@ import java.io.{File, FileInputStream, InputStreamReader}
 import _root_.io.circe._
 import _root_.io.circe.yaml.parser
 import cats.data.NonEmptyList
-import models.Parameters
 import cats.syntax.either._
 import models.{Dictionary, SupportedService}
 
@@ -14,7 +13,7 @@ object YMLParser {
   def getSupportedServices(file: File): Either[Error, List[Either[NonEmptyList[Error], String]]] = {
     cfToJson(file).map { json =>
 
-      val parameters: Dictionary = Dictionary.loadFromJson(json)
+      val parameters: Dictionary = Dictionary(json)
 
       val commands: List[Either[NonEmptyList[Error], String]] =
         for {
@@ -23,22 +22,12 @@ object YMLParser {
           resourceJson <- resourcesJsonObject.values
           resourceType <- resourceJson.hcursor.downField("Type").as[String].toList
           service <- SupportedService.withAwsName(resourceType).toList
-          transformedResourceJson = Dictionary.applyDictionary(resourceJson, parameters)
+          transformedResourceJson = Dictionary.replace(resourceJson, parameters)
           _ = println(s"Found a resource of type: ${service.awsName}")
           command <- List(service.createCommand(transformedResourceJson))
         } yield command
 
       commands
-    }
-  }
-
-  def getAwsServices(file: File): Either[ParsingFailure, List[Either[NonEmptyList[Error], String]]] = {
-    cfToJson(file).map { json =>
-
-      val parameters = Parameters(Dictionary.loadFromJson(json).entries)
-
-      ???
-
     }
   }
 }

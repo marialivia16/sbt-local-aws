@@ -9,24 +9,20 @@ object LocalAwsPlugin extends AutoPlugin {
     lazy val localAwsStop = TaskKey[Unit]("localAwsStop", "Stops the local AWS stack.")
 
     lazy val localAwsCloudformationLocation = settingKey[File]("The location of the cloudformation file.")
+    lazy val localAwsServices = settingKey[List[String]]("The list of services to spin up.")
   }
 
   import autoImport._
 
   override lazy val projectSettings = Seq(
     localAwsCloudformationLocation := { sys.error("Please provide the path to the cloudformation file.") },
+    localAwsServices := { sys.error("Please provide the services you need to spin up.") },
 
     localAwsStart := {
-      //Spin up docker with localstack image and creds
-      val dockerCmd =
-        "docker run -d -p 4569:4569 -e SERVICES=dynamodb  localstack/localstack" //--e AWS_ACCESS_KEY_ID=foobar --e AWS_SECRET_ACCESS_KEY=foobar --e AWS_DEFAULT_REGION=us-east-1"
-      println(dockerCmd)
-      dockerCmd.!
+      //Spin up docker with localstack image with required services
+      s"docker run -d -p 4569:4569 -e SERVICES=${localAwsServices.value.mkString(",")}  localstack/localstack".!
 
       //TODO: remember to run "aws configure"
-
-      //TODO: Can "pip install awscli-local" be installed here instead?
-      "brew install awscli".!
 
       //Parse cf
       val cmds = YMLParser.getSupportedServices(localAwsCloudformationLocation.value)

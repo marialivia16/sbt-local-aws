@@ -1,6 +1,6 @@
 package models
 
-
+//Not used
 case class CloudFormation(parameters: Parameters, resources: List[Resource])
 
 case class Parameters(params: Map[String, String])

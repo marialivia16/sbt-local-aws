@@ -103,7 +103,9 @@ object SupportedService extends Enum[SupportedService] with CirceEnum[SupportedS
   }
 
   case object S3 extends SupportedService(awsName = "AWS::S3::Bucket") {
-    override def createCommand(json: Json): Either[NonEmptyList[Error], String] = ???
+    override def createCommand(json: Json): Either[NonEmptyList[Error], String] = {
+      Right("Not implemented yet")
+    }
   }
 
   val values = findValues
