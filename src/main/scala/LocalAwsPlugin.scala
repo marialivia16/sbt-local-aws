@@ -42,7 +42,8 @@ object LocalAwsPlugin extends AutoPlugin {
     },
 
     localAwsStop := {
-      "docker stop $(docker ps -q --filter ancestor=localstack/localstack)".!
+      println("Removing localstack container...")
+      Process(Seq("bash", "-c", "docker stop $(docker ps -q --filter ancestor=localstack/localstack)")).!
     }
   )
 }
