@@ -13,7 +13,7 @@ import enumeratum._
 import io.circe.{Error, Json, ParsingFailure}
 
 sealed abstract class SupportedService(val awsName: String) extends EnumEntry {
-  def createCommand(json: Json): Either[NonEmptyList[Error], String]
+  def createCommand(json: Json): Either[NonEmptyList[PluginError], String]
 }
 
 object SupportedService extends Enum[SupportedService] with CirceEnum[SupportedService] {
@@ -22,13 +22,13 @@ object SupportedService extends Enum[SupportedService] with CirceEnum[SupportedS
 
   case object DynamoDB extends SupportedService(awsName = "AWS::DynamoDB::Table") {
 
-    override def createCommand(json: Json): Either[NonEmptyList[Error], String] = {
+    override def createCommand(json: Json): Either[NonEmptyList[PluginError], String] = {
       val propertiesJson = json.hcursor.downField("Properties").focus.get
-      Semigroupal.map5[ValidatedNel[Error, ?], String, String, String, Option[String], String, String](
+      Semigroupal.map5[ValidatedNel[PluginError, ?], String, String, String, Option[String], String, String](
         extractTableName(propertiesJson),
         extractAttributeDefinitions(propertiesJson),
         extractKeySchema(propertiesJson),
-        extractSecondaryIndexes(propertiesJson).sequence[ValidatedNel[Error, ?], String],
+        extractSecondaryIndexes(propertiesJson).sequence[ValidatedNel[PluginError, ?], String],
         extractProvisionedThroughput(propertiesJson)
       ) {
         case (tableName, attributeDefinitions, keySchema, gsi, provisionedThroughput) =>
@@ -46,50 +46,51 @@ object SupportedService extends Enum[SupportedService] with CirceEnum[SupportedS
       }.toEither
     }
 
-    private def extractTableName(json: Json): ValidatedNel[Error, String] =
+    private def extractTableName(json: Json): ValidatedNel[PluginError, String] =
       json.hcursor.downField("TableName")
-        .focus.toValidNel(ParsingFailure(s"Missing field TableName on $json", new IllegalStateException))
-        .andThen(_.as[String].toValidatedNel)
+        .focus.toValidNel(CirceError(ParsingFailure(s"Missing field TableName on $json", new IllegalStateException)))
+        .andThen(_.as[String].leftMap(CirceError).toValidatedNel)
 
-    private def extractAttributeDefinitions(json: Json): ValidatedNel[Error, String] =
-      json.hcursor.downField("AttributeDefinitions").as[List[Json]].toValidatedNel.andThen { jsonList =>
-        jsonList.traverse[ValidatedNel[Error, ?], String] { attributeDefinitionJson =>
-          Semigroupal.map2[ValidatedNel[Error, ?], String, String, String](
-            attributeDefinitionJson.hcursor.downField("AttributeName").as[String].toValidatedNel,
-            attributeDefinitionJson.hcursor.downField("AttributeType").as[String].toValidatedNel) {
+    private def extractAttributeDefinitions(json: Json): ValidatedNel[PluginError, String] =
+      json.hcursor.downField("AttributeDefinitions").as[List[Json]].leftMap(CirceError).toValidatedNel.andThen { jsonList =>
+        jsonList.traverse[ValidatedNel[PluginError, ?], String] { attributeDefinitionJson =>
+          Semigroupal.map2[ValidatedNel[PluginError, ?], String, String, String](
+            attributeDefinitionJson.hcursor.downField("AttributeName").as[String].leftMap(CirceError).toValidatedNel,
+            attributeDefinitionJson.hcursor.downField("AttributeType").as[String].leftMap(CirceError).toValidatedNel) {
             case (attributeName, keyType) => s"AttributeName=$attributeName,AttributeType=$keyType"
           }
         }.map(_.mkString(" "))
       }
 
-    private def extractKeySchema(json: Json): ValidatedNel[Error, String] =
-      json.hcursor.downField("KeySchema").as[List[Json]].toValidatedNel.andThen { jsonList =>
-        jsonList.traverse[ValidatedNel[Error, ?], String] { keySchemaJson =>
-          Semigroupal.map2[ValidatedNel[Error, ?], String, String, String](
-            keySchemaJson.hcursor.downField("AttributeName").as[String].toValidatedNel,
-            keySchemaJson.hcursor.downField("KeyType").as[String].toValidatedNel) {
+    private def extractKeySchema(json: Json): ValidatedNel[PluginError, String] =
+      json.hcursor.downField("KeySchema").as[List[Json]].leftMap(CirceError).toValidatedNel.andThen { jsonList =>
+        jsonList.traverse[ValidatedNel[PluginError, ?], String] { keySchemaJson =>
+          Semigroupal.map2[ValidatedNel[PluginError, ?], String, String, String](
+            keySchemaJson.hcursor.downField("AttributeName").as[String].leftMap(CirceError).toValidatedNel,
+            keySchemaJson.hcursor.downField("KeyType").as[String].leftMap(CirceError).toValidatedNel) {
             case (attributeName, keyType) => s"AttributeName=$attributeName,KeyType=$keyType"
           }
         }.map(_.mkString(" "))
       }
 
-    private def extractProvisionedThroughput(json: Json): ValidatedNel[Error, String] =
-      Semigroupal.map2[ValidatedNel[Error, ?], Int, Int, String](
-        json.hcursor.downField("ProvisionedThroughput").downField("ReadCapacityUnits").as[Int].leftWiden[Error].toValidatedNel,
-        json.hcursor.downField("ProvisionedThroughput").downField("WriteCapacityUnits").as[Int].leftWiden[Error].toValidatedNel) {
+    private def extractProvisionedThroughput(json: Json): ValidatedNel[PluginError, String] =
+      Semigroupal.map2[ValidatedNel[PluginError, ?], Int, Int, String](
+        json.hcursor.downField("ProvisionedThroughput").downField("ReadCapacityUnits").as[Int].leftMap(CirceError).toValidatedNel,
+        json.hcursor.downField("ProvisionedThroughput").downField("WriteCapacityUnits").as[Int].leftMap(CirceError).toValidatedNel) {
         case (readCapacityUnits, writeCapacityUnits) => s"ReadCapacityUnits=$readCapacityUnits,WriteCapacityUnits=$writeCapacityUnits"
       }
 
-    private def extractProjectionType(json: Json): ValidatedNel[Error, String] =
-      json.hcursor.downField("Projection").downField("ProjectionType").as[String].toValidatedNel.map { projectionType =>
-        s"Projection={ProjectionType=$projectionType}"
-      }
+    private def extractProjectionType(json: Json): ValidatedNel[PluginError, String] =
+      json.hcursor.downField("Projection").downField("ProjectionType")
+        .as[String].leftMap(CirceError).toValidatedNel.map { projectionType =>
+          s"Projection={ProjectionType=$projectionType}"
+        }
 
-    private def extractSecondaryIndexes(json: Json): Option[ValidatedNel[Error, String]] =
+    private def extractSecondaryIndexes(json: Json): Option[ValidatedNel[PluginError, String]] =
       json.hcursor.downField("GlobalSecondaryIndexes").as[List[Json]].toOption.map { jsonList =>
-        jsonList.traverse[ValidatedNel[Error, ?], String] { gsiJson =>
-          Semigroupal.map4[ValidatedNel[Error, ?], String, String, String, String, String](
-            gsiJson.hcursor.downField("IndexName").as[String].toValidatedNel,
+        jsonList.traverse[ValidatedNel[PluginError, ?], String] { gsiJson =>
+          Semigroupal.map4[ValidatedNel[PluginError, ?], String, String, String, String, String](
+            gsiJson.hcursor.downField("IndexName").as[String].leftMap(CirceError).toValidatedNel,
             extractKeySchema(gsiJson),
             extractProjectionType(gsiJson),
             extractProvisionedThroughput(gsiJson)
@@ -103,8 +104,8 @@ object SupportedService extends Enum[SupportedService] with CirceEnum[SupportedS
   }
 
   case object S3 extends SupportedService(awsName = "AWS::S3::Bucket") {
-    override def createCommand(json: Json): Either[NonEmptyList[Error], String] = {
-      Right("Not implemented yet")
+    override def createCommand(json: Json): Either[NonEmptyList[PluginError], String] = {
+      Left(NonEmptyList.one(NotImplemented("S3 Service not implemented yet")))
     }
   }
 

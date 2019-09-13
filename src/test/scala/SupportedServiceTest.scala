@@ -1,6 +1,7 @@
+import cats.data.NonEmptyList
 import helpers.TestHelpers._
 import io.circe.Json
-import models.SupportedService
+import models.{NotImplemented, SupportedService}
 import org.scalatest.{FlatSpec, Matchers}
 
 class SupportedServiceTest extends FlatSpec with Matchers {
@@ -15,6 +16,6 @@ class SupportedServiceTest extends FlatSpec with Matchers {
   }
 
   it should "create command correctly for S3 service" in {
-    SupportedService.S3.createCommand(Json.Null) shouldBe Right("Not implemented yet")
+    SupportedService.S3.createCommand(Json.Null) shouldBe Left(NonEmptyList.one(NotImplemented("S3 Service not implemented yet")))
   }
 }
