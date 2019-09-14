@@ -23,3 +23,7 @@ lazy val root = (project in file("."))
     },
     scriptedBufferLog := false
   )
+
+lazy val example = (project in file("example")).settings(
+  name := "local-aws-example"
+)

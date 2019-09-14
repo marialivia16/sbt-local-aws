@@ -3,7 +3,7 @@ Description: Example cloudformation
 
 Parameters:
   AppName:
-    Default: Example
+    Default: ConcertTickets
     Description: Name of the app
     Type: String
   Environment:
@@ -11,73 +11,45 @@ Parameters:
       - CODE
       - PROD
     Default: CODE
-    Description: Environment name
+    Description: models.Environment name
     Type: String
 
 Resources:
 
-  UserByIdDynamoDBTable:
+  SalesTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub ${AppName}-users-byid-${Environment}
       AttributeDefinitions:
-        - AttributeName: UserId
-          AttributeType: S
-        - AttributeName: PermissionKey
-          AttributeType: S
-        - AttributeName: PrimaryEmail
-          AttributeType: S
+        - AttributeName: "ArtistId"
+          AttributeType: "S"
+        - AttributeName: "Concert"
+          AttributeType: "S"
+        - AttributeName: "TicketSales"
+          AttributeType: "S"
       KeySchema:
-        - AttributeName: UserId
-          KeyType: HASH
-        - AttributeName: PermissionKey
-          KeyType: RANGE
-      ProvisionedThroughput:
-        ReadCapacityUnits: 1
-        WriteCapacityUnits: 1
-      SSESpecification:
-        SSEEnabled: true
+        - AttributeName: "ArtistId"
+          KeyType: "HASH"
+        - AttributeName: "Concert"
+          KeyType: "RANGE"
       GlobalSecondaryIndexes:
-        - IndexName: "UserId-index"
+        - IndexName: "GSI"
           KeySchema:
-            - AttributeName: UserId
-              KeyType: HASH
+            - AttributeName: "TicketSales"
+              KeyType: "HASH"
           Projection:
-            ProjectionType: ALL
+            ProjectionType: "KEYS_ONLY"
           ProvisionedThroughput:
-            ReadCapacityUnits: 1
-            WriteCapacityUnits: 1
-        - IndexName: "PrimaryEmail-index"
-          KeySchema:
-            - AttributeName: PrimaryEmail
-              KeyType: HASH
-            - AttributeName: PermissionKey
-              KeyType: RANGE
-          Projection:
-            ProjectionType: ALL
-          ProvisionedThroughput:
-            ReadCapacityUnits: 1
-            WriteCapacityUnits: 1
-
-  GroupsByIdDynamoDBTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      tableName: !Sub ${AppName}-groups-byid-${Environment}
-      AttributeDefinitions:
-        - AttributeName: userId
-          AttributeType: S
-        - AttributeName: groupId
-          AttributeType: S
-      KeySchema:
-        - AttributeName: userId
-          KeyType: HASH
-        - AttributeName: groupId
-          KeyType: RANGE
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
       ProvisionedThroughput:
-        ReadCapacityUnits: 6
-        WriteCapacityUnits: 1
-      SSESpecification:
-        SSEEnabled: true
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  PriceBandsBucket:
+    DeletionPolicy: Retain
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: PriceBandsBucket
       
     
 
