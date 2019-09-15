@@ -29,3 +29,9 @@ lazy val exampleWithoutPlugin = (project in file("example-without-plugin"))
   .settings(
     name := "example-without-plugin"
   )
+
+lazy val exampleWithPlugin = (project in file("example-with-plugin"))
+//  .enablePlugins(DockerComposePlugin)
+  .settings(
+    name := "example-with-plugin"
+  )
