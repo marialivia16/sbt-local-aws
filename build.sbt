@@ -24,8 +24,8 @@ lazy val root = (project in file("."))
     scriptedBufferLog := false
   )
 
-lazy val example = (project in file("example"))
+lazy val exampleWithoutPlugin = (project in file("example-without-plugin"))
   .enablePlugins(DockerComposePlugin)
   .settings(
-    name := "local-aws-example"
+    name := "example-without-plugin"
   )
