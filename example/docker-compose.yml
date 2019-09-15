@@ -1,0 +1,9 @@
+version: "3.7"
+services:
+  localstack:
+    image: localstack/localstack
+    ports:
+      - "4569:4569"
+      - "4572:4572"
+    environment:
+      - SERVICES=dynamodb,s3

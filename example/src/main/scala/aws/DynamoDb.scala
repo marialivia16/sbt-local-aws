@@ -14,7 +14,7 @@ class DynamoDb(environment: Environment) {
   val client: DynamoDbClient = chooseClient(environment)
 
   private def chooseClient(environment: Environment): DynamoDbClient = environment match {
-    case Dev => DynamoDbClient.builder().endpointOverride(URI.create("localhost:4569")).build()
+    case Dev => DynamoDbClient.builder().endpointOverride(URI.create("http://localhost:4569")).build()
     case _ => DynamoDbClient.builder()
       .region(Region.EU_WEST_1)
       .credentialsProvider(ProfileCredentialsProvider.builder()
@@ -39,14 +39,11 @@ object DynamoDb {
 
   def getAllConcertInfos(client: DynamoDbClient): List[ConcertInfo] = {
     val request = ScanRequest.builder().tableName(ConcertInfoTable).build()
-    val response = client.scan(request).items().asScala.map { fields =>
+    client.scan(request).items().asScala.toList.map { fields =>
       val concertId = fields.get("ConcertId").s()
       val artistId = fields.get("ArtistId").s()
       val ticketSales = fields.get("TicketSales").n().toInt
       ConcertInfo(concertId, artistId, ticketSales)
     }
-
-
-
   }
 }
