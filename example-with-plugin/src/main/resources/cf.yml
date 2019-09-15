@@ -8,9 +8,10 @@ Parameters:
     Type: String
   Environment:
     AllowedValues:
+      - DEV
       - CODE
       - PROD
-    Default: CODE
+    Default: DEV
     Description: Enviroment name
     Type: String
 
@@ -23,14 +24,14 @@ Resources:
       AttributeDefinitions:
         - AttributeName: "ArtistId"
           AttributeType: "S"
-        - AttributeName: "Concert"
+        - AttributeName: "ConcertId"
           AttributeType: "S"
         - AttributeName: "TicketSales"
-          AttributeType: "S"
+          AttributeType: "N"
       KeySchema:
         - AttributeName: "ArtistId"
           KeyType: "HASH"
-        - AttributeName: "Concert"
+        - AttributeName: "ConcertId"
           KeyType: "RANGE"
       GlobalSecondaryIndexes:
         - IndexName: "GSI"

@@ -8,10 +8,11 @@ Parameters:
     Type: String
   Environment:
     AllowedValues:
+      - DEV
       - CODE
       - PROD
-    Default: CODE
-    Description: Environment name
+    Default: DEV
+    Description: Enviroment name
     Type: String
 
 Resources:
@@ -19,17 +20,18 @@ Resources:
   SalesTable:
     Type: AWS::DynamoDB::Table
     Properties:
+      TableName: !Sub ${AppName}-SalesTable-${Environment}
       AttributeDefinitions:
         - AttributeName: "ArtistId"
           AttributeType: "S"
-        - AttributeName: "Concert"
+        - AttributeName: "ConcertId"
           AttributeType: "S"
         - AttributeName: "TicketSales"
-          AttributeType: "S"
+          AttributeType: "N"
       KeySchema:
         - AttributeName: "ArtistId"
           KeyType: "HASH"
-        - AttributeName: "Concert"
+        - AttributeName: "ConcertId"
           KeyType: "RANGE"
       GlobalSecondaryIndexes:
         - IndexName: "GSI"
@@ -49,4 +51,4 @@ Resources:
     DeletionPolicy: Retain
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: PriceBandsBucket
+      BucketName: !Sub ${AppName}-PriceBandsBucket-${Environment}

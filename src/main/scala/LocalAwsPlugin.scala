@@ -29,7 +29,9 @@ object LocalAwsPlugin extends AutoPlugin {
 
       //Execute aws cli commands or print list of errors
       cmds.foreach {
-        case Right(cmd) => cmd.!
+        case Right(cmd) =>
+          println(cmd)
+          cmd.!
         case Left(err) => err.map(println)
       }
     },

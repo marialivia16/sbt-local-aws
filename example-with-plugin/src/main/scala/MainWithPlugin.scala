@@ -1,7 +1,7 @@
 import aws.{DynamoDb, S3}
 import models.{ConcertInfo, Dev}
 
-object Main extends App {
+object MainWithPlugin extends App {
   val s3Client = new S3(Dev).client
   val dynamoDbClient = new DynamoDb(Dev).client
 
