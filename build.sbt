@@ -31,7 +31,9 @@ lazy val exampleWithoutPlugin = (project in file("example-without-plugin"))
   )
 
 lazy val exampleWithPlugin = (project in file("example-with-plugin"))
-//  .enablePlugins(DockerComposePlugin)
+  .enablePlugins(LocalAwsPlugin)
   .settings(
-    name := "example-with-plugin"
+    name := "example-with-plugin",
+    localAwsCloudformationLocation := (Compile / resourceDirectory).value / "cf.yml",
+    localAwsServices := List("dynamodb")
   )

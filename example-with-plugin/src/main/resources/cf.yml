@@ -11,7 +11,7 @@ Parameters:
       - CODE
       - PROD
     Default: CODE
-    Description: Environment name
+    Description: Enviroment name
     Type: String
 
 Resources:
@@ -19,6 +19,7 @@ Resources:
   SalesTable:
     Type: AWS::DynamoDB::Table
     Properties:
+      TableName: !Sub ${AppName}-SalesTable-${Environment}
       AttributeDefinitions:
         - AttributeName: "ArtistId"
           AttributeType: "S"
@@ -49,4 +50,4 @@ Resources:
     DeletionPolicy: Retain
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: PriceBandsBucket
+      BucketName: !Sub ${AppName}-PriceBandsBucket-${Environment}
