@@ -1,6 +1,6 @@
 ## Example project with plugin
 
-1. Install Docker and Docker Compose
+1. Install Docker, and AWS CLI
 
 2. Make sure you have some dummy credentials (set them using `aws configure`)
 

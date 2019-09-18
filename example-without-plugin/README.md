@@ -1,6 +1,6 @@
 ## Example project without plugin
 
-1. Install Docker and Docker Compose
+1. Install Docker, Docker Compose, and AWS CLI
 
 2. Spin up docker container:
 
