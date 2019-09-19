@@ -14,7 +14,7 @@ addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.8")
 
 ThisBuild / version := "0.1.0"
 ThisBuild / organization := "marialivia.ch"
-ThisBuild / description := "SBT Plugin to spin up localstack container with AWS resorces."
+ThisBuild / description := "SBT Plugin to spin up localstack container with AWS resources."
 
 ThisBuild / licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html"))
 
