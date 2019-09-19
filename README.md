@@ -18,9 +18,21 @@ addSbtPlugin("marialivia.ch" % "sbt-local-aws" % "0.1.0")
 ```
 
 #### Configuration
+In your `build.sbt` add:
+```
+lazy val exampleWithPlugin = (project in file("example-with-plugin"))
+  .enablePlugins(LocalAwsPlugin)
+  .settings(
+    name := "example-with-plugin",
+    localAwsCloudformationLocation := (Compile / resourceDirectory).value / "cf.yml",
+    localAwsServices := List("dynamodb")
+  )
+```
 
+- `localAwsCloudformationLocation`: path to the cloudformation yml file
+- `localAwsServices`: list of AWS services you need the plugin to spin up
 
 #### Commands
-- localAwsStart
-- localAwsStop
-- localAwsCommands
+- `localAwsStart`: starts the specified services in Docker using the localstack image, and creates the resources using the cloudformation file.
+- `localAwsStop`: stops the Docker container running localstack.
+- `localAwsCommands`: prints out the AWS CLI commands created using the cloudformation.

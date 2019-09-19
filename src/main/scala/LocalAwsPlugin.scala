@@ -3,6 +3,7 @@ import sbt._
 import sys.process._
 import scala.collection.immutable.Seq
 import YMLParser.Command
+import models.SupportedService
 
 object LocalAwsPlugin extends AutoPlugin {
   object autoImport {
@@ -22,10 +23,21 @@ object LocalAwsPlugin extends AutoPlugin {
 
     localAwsStart := {
       //Spin up docker for localstack image with required services
-      s"docker run -d -p 4569:4569 -e SERVICES=${localAwsServices.value.mkString(",")} localstack/localstack".!
+
+      val servicesStrings: Seq[String] = localAwsServices.value
+      val supportedServices: Seq[SupportedService] = servicesStrings.flatMap(SupportedService.fromName)
+
+      val portMappings = servicesStrings.flatMap(SupportedService.portFromName).map(port => s"-p $port:$port").mkString(" ")
+      val services = servicesStrings.mkString(",")
+
+      println(s"The following services will start up: ${supportedServices.map(_.awsName).mkString(",")}")
+
+      s"docker run -d $portMappings -e SERVICES=$services localstack/localstack".!
+
+      val requestedServices = if(supportedServices.isEmpty) SupportedService.values else supportedServices.toIndexedSeq
 
       //Parse cf
-      val cmds: List[Command] = YMLParser.getSupportedServices(localAwsCloudformationLocation.value)
+      val cmds: List[Command] = YMLParser.getAwsCommands(localAwsCloudformationLocation.value, requestedServices)
 
       //Execute aws cli commands or print list of errors
       cmds.foreach {
@@ -37,7 +49,7 @@ object LocalAwsPlugin extends AutoPlugin {
     },
 
     localAwsCliCommands := {
-      YMLParser.getSupportedServices(localAwsCloudformationLocation.value).foreach {
+      YMLParser.getAwsCommands(localAwsCloudformationLocation.value).foreach {
         case Right(cmd) => println(s"$cmd\n")
         case Left(err) => err.map(println)
       }

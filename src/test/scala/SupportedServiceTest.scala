@@ -1,6 +1,7 @@
 import cats.data.NonEmptyList
 import helpers.TestHelpers._
 import io.circe.Json
+import models.SupportedService.DynamoDB
 import models.{NotImplemented, SupportedService}
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -17,5 +18,10 @@ class SupportedServiceTest extends FlatSpec with Matchers {
 
   it should "create command correctly for S3 service" in {
     SupportedService.S3.createCommand(Json.Null) shouldBe Left(NonEmptyList.one(NotImplemented("S3 Service not implemented yet")))
+  }
+
+  it should "create correct service from string" in {
+    SupportedService.fromName("dynamodb") shouldBe Some(DynamoDB)
+    SupportedService.fromName("DynamoDB") shouldBe Some(DynamoDB)
   }
 }

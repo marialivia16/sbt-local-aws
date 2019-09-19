@@ -2,17 +2,16 @@ package models
 
 import cats.Semigroupal
 import cats.data.{NonEmptyList, ValidatedNel}
-import cats.instances.either._
 import cats.instances.list._
 import cats.instances.option._
-import cats.syntax.bifunctor._
 import cats.syntax.either._
 import cats.syntax.option._
 import cats.syntax.traverse._
 import enumeratum._
-import io.circe.{Error, Json, ParsingFailure}
+import io.circe.{Json, ParsingFailure}
 
 sealed abstract class SupportedService(val awsName: String) extends EnumEntry {
+  val port: Int
   def createCommand(json: Json): Either[NonEmptyList[PluginError], String]
 }
 
@@ -20,7 +19,13 @@ object SupportedService extends Enum[SupportedService] with CirceEnum[SupportedS
 
   def withAwsName(awsName: String): Option[SupportedService] = values find (_.awsName == awsName)
 
+  def portFromName(name: String): Option[Int] = values.find(_.awsName.toLowerCase.contains(name.toLowerCase)).map(_.port)
+
+  def fromName(name: String): Option[SupportedService] = values.find(_.awsName.toLowerCase.contains(name.toLowerCase))
+
   case object DynamoDB extends SupportedService(awsName = "AWS::DynamoDB::Table") {
+
+    override val port: Int = 4569
 
     override def createCommand(json: Json): Either[NonEmptyList[PluginError], String] = {
       val propertiesJson = json.hcursor.downField("Properties").focus.get
@@ -41,7 +46,6 @@ object SupportedService extends Enum[SupportedService] with CirceEnum[SupportedS
             s"--key-schema $keySchema",
             globalSecondaryIndexes,
             s"--provisioned-throughput $provisionedThroughput"
-//            s"--region eu-west-1"
           ).filter(!_.isEmpty).mkString(" ")
       }.toEither
     }
@@ -104,6 +108,9 @@ object SupportedService extends Enum[SupportedService] with CirceEnum[SupportedS
   }
 
   case object S3 extends SupportedService(awsName = "AWS::S3::Bucket") {
+
+    override val port: Int = 4572
+
     override def createCommand(json: Json): Either[NonEmptyList[PluginError], String] = {
       Left(NonEmptyList.one(NotImplemented("S3 Service not implemented yet")))
     }
