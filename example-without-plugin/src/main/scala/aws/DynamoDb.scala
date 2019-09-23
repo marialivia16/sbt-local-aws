@@ -25,7 +25,7 @@ class DynamoDb(environment: Environment) {
 }
 
 object DynamoDb {
-  private val ConcertInfoTable = "ConcertTable"
+  private val ConcertInfoTable = "ConcertTickets-SalesTable-DEV"
 
   def writeConcert(concertInfo: ConcertInfo)(client: DynamoDbClient): PutItemResponse = {
     val request = PutItemRequest.builder().tableName(ConcertInfoTable).item(Map(

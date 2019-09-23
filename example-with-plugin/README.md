@@ -4,6 +4,6 @@
 
 2. Make sure you have some dummy credentials (set them using `aws configure`)
 
-2. Run: `sbt localAwsStart` (don't forget to publish the plugin locally first)
+2. Run: `sbt localAwsStart`
 
 3. Start application: `sbt run`

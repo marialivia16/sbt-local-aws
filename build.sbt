@@ -3,14 +3,7 @@ scalaVersion := "2.12.8"
 resolvers += Resolver.sonatypeRepo("snapshots")
 resolvers += Resolver.sonatypeRepo("releases")
 
-
-libraryDependencies ++= Seq(
-  "io.circe" %% "circe-yaml" % "0.9.0",
-  "com.beachape" %% "enumeratum-circe" % "1.5.19",
-  "org.scalatest" %% "scalatest" % "3.0.8" % "test"
-)
-
-addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.8")
+val awsVersion = "2.8.7"
 
 ThisBuild / organization := "marialivia.ch"
 ThisBuild / description := "SBT Plugin to spin up localstack container with AWS resources."
@@ -28,19 +21,32 @@ lazy val root = (project in file("."))
     scriptedBufferLog := false,
     publishMavenStyle := false,
     bintrayRepository := "sbt-plugins",
-    bintrayOrganization in bintray := None
-  )
+    bintrayOrganization in bintray := None)
+  .settings(
+    libraryDependencies ++= Seq(
+      "io.circe" %% "circe-yaml" % "0.9.0",
+      "com.beachape" %% "enumeratum-circe" % "1.5.19",
+      "org.scalatest" %% "scalatest" % "3.0.8" % "test"
+    ))
 
 lazy val exampleWithoutPlugin = (project in file("example-without-plugin"))
   .enablePlugins(DockerComposePlugin)
   .settings(
-    name := "example-without-plugin"
+    name := "example-without-plugin",
+    libraryDependencies ++= Seq(
+      "software.amazon.awssdk" % "dynamodb" % awsVersion,
+      "software.amazon.awssdk" % "s3" % awsVersion
+    )
   )
 
 lazy val exampleWithPlugin = (project in file("example-with-plugin"))
   .enablePlugins(LocalAwsPlugin)
   .settings(
     name := "example-with-plugin",
+    libraryDependencies ++= Seq(
+      "software.amazon.awssdk" % "dynamodb" % awsVersion,
+      "software.amazon.awssdk" % "s3" % awsVersion
+    ))
+  .settings(
     localAwsCloudformationLocation := (Compile / resourceDirectory).value / "cf.yml",
-    localAwsServices := List("dynamodb")
-  )
+    localAwsServices := List("dynamodb"))

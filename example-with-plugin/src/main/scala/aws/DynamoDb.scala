@@ -28,6 +28,7 @@ object DynamoDb {
   private val ConcertInfoTable = "ConcertTickets-SalesTable-DEV"
 
   def writeConcert(concertInfo: ConcertInfo)(client: DynamoDbClient): PutItemResponse = {
+    println(s"=> Writing $concertInfo to the $ConcertInfoTable table")
     val request = PutItemRequest.builder().tableName(ConcertInfoTable).item(Map(
       "ConcertId" -> AttributeValue.builder().s(concertInfo.concertId).build(),
       "ArtistId" -> AttributeValue.builder().s(concertInfo.artistId).build(),
@@ -43,7 +44,9 @@ object DynamoDb {
       val concertId = fields.get("ConcertId").s()
       val artistId = fields.get("ArtistId").s()
       val ticketSales = fields.get("TicketSales").n().toInt
-      ConcertInfo(concertId, artistId, ticketSales)
+      val result = ConcertInfo(concertId, artistId, ticketSales)
+      println(s"=> Retrieved $result from the $ConcertInfoTable table")
+      result
     }
   }
 }

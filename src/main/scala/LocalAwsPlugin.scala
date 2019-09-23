@@ -30,13 +30,13 @@ object LocalAwsPlugin extends AutoPlugin {
       val portMappings = servicesStrings.flatMap(SupportedService.portFromName).map(port => s"-p $port:$port").mkString(" ")
       val services = servicesStrings.mkString(",")
 
-      println(s"The following services will start up: ${supportedServices.map(_.awsName).mkString(",")}")
-
       s"docker run -d $portMappings -e SERVICES=$services localstack/localstack".!
 
       val requestedServices = if(supportedServices.isEmpty) SupportedService.values else supportedServices.toIndexedSeq
 
-      //Parse cf
+      println(s"The following services will start up: ${requestedServices.map(_.awsName).mkString(",")}")
+
+      //Parse cloudformation
       val cmds: List[Command] = YMLParser.getAwsCommands(localAwsCloudformationLocation.value, requestedServices)
 
       //Execute aws cli commands or print list of errors
