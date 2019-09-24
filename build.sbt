@@ -5,6 +5,8 @@ resolvers += Resolver.sonatypeRepo("releases")
 
 val awsVersion = "2.8.7"
 
+addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.8")
+
 ThisBuild / organization := "marialivia.ch"
 ThisBuild / description := "SBT Plugin to spin up localstack container with AWS resources."
 

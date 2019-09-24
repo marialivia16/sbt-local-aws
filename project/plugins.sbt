@@ -4,5 +4,3 @@ resolvers += Resolver.bintrayIvyRepo("marialiviach", "sbt-plugins")
 addSbtPlugin("marialivia.ch" % "sbt-local-aws" % "0.1.3")
 
 addSbtPlugin("com.github.gseitz" % "sbt-release" % "1.0.11")
-
-addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.8")
