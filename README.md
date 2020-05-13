@@ -53,5 +53,5 @@ For pull requests, please follow the guideline in CONTRIBUTING.md
 
 More support to follow.
 
-## Licence
+## License
 This version of `sbt-local-aws` is released under the Apache License, Version 2.0 (see LICENSE.txt). 
