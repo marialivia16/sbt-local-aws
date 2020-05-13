@@ -6,7 +6,7 @@
 This is an SBT plugin that, given an AWS [CloudFormation](https://aws.amazon.com/cloudformation/) file, spins up a 
 local AWS environment running in Docker, and creates the required resources.
 
-Watch motivation and into to plugin [here](https://www.youtube.com/watch?v=1O3zTuw9SFI&t=3s)
+Watch motivation and intro to plugin [here](https://www.youtube.com/watch?v=1O3zTuw9SFI&t=3s)
 
 ### Prerequisites
 - Install [Docker](https://docs.docker.com/get-docker/)
