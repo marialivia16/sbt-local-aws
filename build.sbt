@@ -5,8 +5,6 @@ resolvers += Resolver.sonatypeRepo("releases")
 
 val awsVersion = "2.8.7"
 
-addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.8")
-
 ThisBuild / organization := "marialivia.ch"
 ThisBuild / description := "SBT Plugin to spin up localstack container with AWS resources."
 
@@ -51,4 +49,4 @@ lazy val exampleWithPlugin = (project in file("example-with-plugin"))
     ))
   .settings(
     localAwsCloudformationLocation := (Compile / resourceDirectory).value / "cf.yml",
-    localAwsServices := List("dynamodb"))
+    localAwsStackName := "my-test-stack")
