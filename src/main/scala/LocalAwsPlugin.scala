@@ -15,16 +15,14 @@
  */
 import sbt._
 
-import sys.process._
+import scala.Console.{GREEN, RESET}
 import scala.collection.immutable.Seq
-import YMLParser.Command
-import models.SupportedService
+import scala.sys.process._
 
 object LocalAwsPlugin extends AutoPlugin {
   object autoImport {
     lazy val localAwsStart = TaskKey[Unit]("localAwsStart", "Creates a local AWS stack from provided cloudformation.")
     lazy val localAwsStop = TaskKey[Unit]("localAwsStop", "Stops the local AWS stack.")
-    lazy val localAwsCliCommands = TaskKey[Unit]("localAwsCliCommands", "Prints out the AWS CLI commands.")
 
     lazy val localAwsCloudformationLocation = settingKey[File]("The location of the cloudformation file.")
     lazy val localAwsStackName = settingKey[String]("The name of the stack.")
@@ -57,26 +55,21 @@ object LocalAwsPlugin extends AutoPlugin {
          |-e SERVICES=$services
          |localstack/localstack""".stripMargin.replaceAll("\n", " ")
 
-      println(s"==> $dockerRunCmd")
+      println(GREEN + dockerRunCmd + RESET)
 
       dockerRunCmd.!
 
       Thread.sleep(10000)
 
-      //Pass cloudformation to localstack service
+      //Send cloudformation to localstack service
       val createStackCmd = s"aws cloudformation create-stack --template-body file://$cfLocation $stackNameParam $endpointUrlParam"
-      println(s"==> $createStackCmd")
+      println(GREEN + createStackCmd + RESET)
       createStackCmd.!
 
       //Print the created resources
-      s"aws cloudformation list-stack-resources $stackNameParam $endpointUrlParam".!
-    },
-
-    localAwsCliCommands := {
-      YMLParser.getAwsCommands(localAwsCloudformationLocation.value).foreach {
-        case Right(cmd) => println(s"$cmd\n")
-        case Left(err) => err.map(println)
-      }
+      val listStackCmd = s"aws cloudformation list-stack-resources $stackNameParam $endpointUrlParam"
+      println(GREEN + listStackCmd + RESET)
+      listStackCmd.!
     },
 
     localAwsStop := {
