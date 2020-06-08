@@ -30,15 +30,13 @@ lazy val exampleWithPlugin = (project in file("example-with-plugin"))
   .enablePlugins(LocalAwsPlugin)
   .settings(
     name := "example-with-plugin",
-    localAwsCloudformationLocation := (Compile / resourceDirectory).value / "cf.yml",
-    localAwsServices := List("dynamodb")
+    localAwsCloudformationLocation := (Compile / resourceDirectory).value / "cf.yml"
   )
 ```
 
 - `localAwsCloudformationLocation` = path to the cloudformation yml file. 
 When parsing the CloudFormation yaml file, the plugin uses default values for any parameter substitution. 
 If no default value is found an error will be returned.
-- `localAwsServices` = list of AWS services you want to spin up. The allowed values so far are: `dynamodb`.
 
 ### Commands
 - `localAwsStart` = starts the specified services in Docker using the localstack image, and creates the resources 

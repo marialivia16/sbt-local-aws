@@ -27,40 +27,49 @@ object LocalAwsPlugin extends AutoPlugin {
     lazy val localAwsCliCommands = TaskKey[Unit]("localAwsCliCommands", "Prints out the AWS CLI commands.")
 
     lazy val localAwsCloudformationLocation = settingKey[File]("The location of the cloudformation file.")
-    lazy val localAwsServices = settingKey[List[String]]("The list of services to spin up.")
+    lazy val localAwsStackName = settingKey[String]("The name of the stack.")
   }
 
   import autoImport._
 
   override lazy val projectSettings = Seq(
     localAwsCloudformationLocation := { sys.error("Please provide the path to the cloudformation file.") },
-    localAwsServices := { sys.error("Please provide the services you need to spin up.") },
+    localAwsStackName := { sys.error("Please provide a name for the local stack.") },
 
     localAwsStart := {
       //Spin up docker for localstack image with required services
 
-      val servicesStrings: Seq[String] = localAwsServices.value
-      val supportedServices: Seq[SupportedService] = servicesStrings.flatMap(SupportedService.fromName)
+      val cfLocation = localAwsCloudformationLocation.value
+      val stackName = localAwsStackName.value
 
-      val portMappings = servicesStrings.flatMap(SupportedService.portFromName).map(port => s"-p $port:$port").mkString(" ")
-      val services = servicesStrings.mkString(",")
+      val port = 4566
 
-      s"docker run -d $portMappings -e SERVICES=$services localstack/localstack".!
+      val stackNameParam = s"--stack-name $stackName"
+      val endpointUrlParam = s"--endpoint-url=http://localhost:$port"
 
-      val requestedServices = if(supportedServices.isEmpty) SupportedService.values else supportedServices.toIndexedSeq
+      val cfServices: List[String] = YMLParser.getAwsResourcesNames(cfLocation)
 
-      println(s"The following services will start up: ${requestedServices.map(_.awsName).mkString(",")}")
+      val services = (cfServices :+ "cloudformation").mkString(",")
 
-      //Parse cloudformation
-      val cmds: List[Command] = YMLParser.getAwsCommands(localAwsCloudformationLocation.value, requestedServices)
+      val dockerRunCmd = s"""docker run -d
+         |-p $port:$port
+         |-v /var/run/docker.sock:/var/run/docker.sock
+         |-e SERVICES=$services
+         |localstack/localstack""".stripMargin.replaceAll("\n", " ")
 
-      //Execute aws cli commands or print list of errors
-      cmds.foreach {
-        case Right(cmd) =>
-          println(cmd)
-          cmd.!
-        case Left(err) => err.map(println)
-      }
+      println(s"==> $dockerRunCmd")
+
+      dockerRunCmd.!
+
+      Thread.sleep(10000)
+
+      //Pass cloudformation to localstack service
+      val createStackCmd = s"aws cloudformation create-stack --template-body file://$cfLocation $stackNameParam $endpointUrlParam"
+      println(s"==> $createStackCmd")
+      createStackCmd.!
+
+      //Print the created resources
+      s"aws cloudformation list-stack-resources $stackNameParam $endpointUrlParam".!
     },
 
     localAwsCliCommands := {

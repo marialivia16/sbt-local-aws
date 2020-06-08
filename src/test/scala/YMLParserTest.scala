@@ -21,7 +21,7 @@ import org.scalatest.{FlatSpec, Matchers}
 class YMLParserTest extends FlatSpec with Matchers {
 
   "YMLParser" should "create command" in {
-    YMLParser.getAwsCommands(cfFile) shouldBe (List(
+    YMLParser.getAwsCommands(cfFile) shouldBe List(
       Right(
         """aws --endpoint-url=http://localhost:4569 dynamodb create-table
           |--table-name Example-users-byid-CODE
@@ -36,6 +36,10 @@ class YMLParserTest extends FlatSpec with Matchers {
           |--key-schema AttributeName=userId,KeyType=HASH AttributeName=groupId,KeyType=RANGE
           |--provisioned-throughput ReadCapacityUnits=6,WriteCapacityUnits=1""".stripMargin.replaceAll("\n", " ")),
       Left(NonEmptyList.fromListUnsafe(List(NotImplemented("S3 Service not implemented yet"))))
-    ))
+    )
+  }
+
+  it should "get resource names" in {
+    YMLParser.getAwsResourcesNames(cfFile) shouldBe List("dynamodb", "s3")
   }
 }

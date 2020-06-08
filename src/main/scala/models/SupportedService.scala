@@ -25,22 +25,25 @@ import cats.syntax.traverse._
 import enumeratum._
 import io.circe.{Json, ParsingFailure}
 
-sealed abstract class SupportedService(val awsName: String) extends EnumEntry {
+sealed abstract class SupportedService(val awsType: String) extends EnumEntry {
   val port: Int
+  val name: String
   def createCommand(json: Json): Either[NonEmptyList[PluginError], String]
 }
 
 object SupportedService extends Enum[SupportedService] with CirceEnum[SupportedService] {
 
-  def withAwsName(awsName: String): Option[SupportedService] = values find (_.awsName == awsName)
+  def withAwsType(awsType: String): Option[SupportedService] = values find (_.awsType == awsType)
 
-  def portFromName(name: String): Option[Int] = values.find(_.awsName.toLowerCase.contains(name.toLowerCase)).map(_.port)
+  def portFromName(name: String): Option[Int] = values.find(_.awsType.toLowerCase.contains(name.toLowerCase)).map(_.port)
 
-  def fromName(name: String): Option[SupportedService] = values.find(_.awsName.toLowerCase.contains(name.toLowerCase))
+  def fromName(name: String): Option[SupportedService] = values.find(_.awsType.toLowerCase.contains(name.toLowerCase))
 
-  case object DynamoDB extends SupportedService(awsName = "AWS::DynamoDB::Table") {
+  case object DynamoDB extends SupportedService(awsType = "AWS::DynamoDB::Table") {
 
     override val port: Int = 4569
+
+    override val name: String = "dynamodb"
 
     override def createCommand(json: Json): Either[NonEmptyList[PluginError], String] = {
       val propertiesJson = json.hcursor.downField("Properties").focus.get
@@ -122,9 +125,11 @@ object SupportedService extends Enum[SupportedService] with CirceEnum[SupportedS
       }
   }
 
-  case object S3 extends SupportedService(awsName = "AWS::S3::Bucket") {
+  case object S3 extends SupportedService(awsType = "AWS::S3::Bucket") {
 
     override val port: Int = 4572
+
+    override val name: String = "s3"
 
     override def createCommand(json: Json): Either[NonEmptyList[PluginError], String] = {
       Left(NonEmptyList.one(NotImplemented("S3 Service not implemented yet")))

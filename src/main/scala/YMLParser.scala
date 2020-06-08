@@ -32,6 +32,16 @@ object YMLParser {
     }, identity
   )
 
+  def getAwsResourcesNames(file: File): List[String] = {
+    val json = cfToJson(file)
+    (for {
+      resourcesJson <- json.hcursor.downField("Resources").focus.toList
+      resourcesJsonObject <- resourcesJson.asObject.toList
+      resourceJson <- resourcesJsonObject.values
+      resourceType <- resourceJson.hcursor.downField("Type").as[String].toList
+    } yield resourceType).flatMap(SupportedService.withAwsType).map(_.name).toSet.toList
+  }
+
   def getAwsCommands(file: File, requestedServices: IndexedSeq[SupportedService] = SupportedService.values): List[Command] =
     commandsFromJson(cfToJson(file), requestedServices)
 
@@ -41,12 +51,12 @@ object YMLParser {
       resourcesJsonObject <- resourcesJson.asObject.toList
       resourceJson <- filterRequestedServices(resourcesJsonObject.values.toList, requestedServices)
       resourceType <- resourceJson.hcursor.downField("Type").as[String].toList
-      service <- SupportedService.withAwsName(resourceType).toList
+      service <- SupportedService.withAwsType(resourceType).toList
       transformedResourceJson = Dictionary.replace(resourceJson, Dictionary(json))
       command <- List(service.createCommand(transformedResourceJson))
     } yield command
 
   private def filterRequestedServices(json: List[Json], requestedServices: IndexedSeq[SupportedService]): List[Json] = json.filter { j =>
-      j.hcursor.downField("Type").as[String].toOption.exists(requestedServices.map(_.awsName).contains)
+      j.hcursor.downField("Type").as[String].toOption.exists(requestedServices.map(_.awsType).contains)
     }
 }
