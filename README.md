@@ -10,7 +10,7 @@ Watch motivation and intro to plugin [here](https://www.youtube.com/watch?v=1O3z
 
 ### Prerequisites
 - Install [Docker](https://docs.docker.com/get-docker/)
-- Install [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) 
+- Install [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
 
 Before running remember to configure the AWS credentials.
 Just run `aws configure` and provide some dummy values. They will be used by the 
@@ -30,19 +30,20 @@ lazy val exampleWithPlugin = (project in file("example-with-plugin"))
   .enablePlugins(LocalAwsPlugin)
   .settings(
     name := "example-with-plugin",
-    localAwsCloudformationLocation := (Compile / resourceDirectory).value / "cf.yml"
+    localAwsCloudformationLocation := (Compile / resourceDirectory).value / "cf.yml",
+    localAwsStackName := "my-test-stack"
   )
 ```
 
 - `localAwsCloudformationLocation` = path to the cloudformation yml file. 
 When parsing the CloudFormation yaml file, the plugin uses default values for any parameter substitution. 
 If no default value is found an error will be returned.
+- `localAwsStackName` = the name of the stack that will be created.
 
 ### Commands
-- `localAwsStart` = starts the specified services in Docker using the localstack image, and creates the resources 
-using the cloudformation file.
+- `localAwsStart` = starts the required services in Docker using the localstack image, and creates the resources 
+from the cloudformation file.
 - `localAwsStop` = stops the Docker container running localstack.
-- `localAwsCommands` = prints out the AWS CLI commands created using the cloudformation.
 
 ## Contributing
 Contributions to this plugin are welcome!
