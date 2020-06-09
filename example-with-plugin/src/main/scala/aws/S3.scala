@@ -32,7 +32,7 @@ class S3(environment: Environment) {
   val client: S3Client = chooseClient(environment)
 
   private def chooseClient(environment: Environment): S3Client = environment match {
-    case Dev => S3Client.builder().endpointOverride(URI.create("http://localhost:4572")).build()
+    case Dev => S3Client.builder().endpointOverride(URI.create("http://localhost:4566")).build()
     case _ => S3Client.builder()
       .region(Region.EU_WEST_1)
       .credentialsProvider(ProfileCredentialsProvider.builder()
@@ -43,9 +43,10 @@ class S3(environment: Environment) {
 }
 
 object S3 {
-  private val PriceBandsBucket = "PriceBandsBucket"
+  private val PriceBandsBucket = "ConcertTickets-PriceBandsBucket-DEV"
 
   def setConcertPrices(concertId: String, priceBands: Map[String, Int])(client: S3Client): PutObjectResponse = {
+    println(s"[S3] Writing $concertId & $priceBands to the $PriceBandsBucket bucket")
     val request = PutObjectRequest.builder().bucket(PriceBandsBucket).key(concertId).build()
 
     val bandsRows: String = priceBands.map { case (band, price) =>
@@ -63,14 +64,14 @@ object S3 {
       val getObjectRequest = GetObjectRequest.builder().key(concertId).bucket(PriceBandsBucket).build()
       val inputStream: ResponseBytes[GetObjectResponse] = client.getObject(getObjectRequest, ResponseTransformer.toBytes[GetObjectResponse])
 
-      val map = inputStream.asString(Charset.defaultCharset()).split("\n").foldLeft(Map.empty[String, Int]) { (acc, line) =>
+      val prices = inputStream.asString(Charset.defaultCharset()).split("\n").foldLeft(Map.empty[String, Int]) { (acc, line) =>
         line.split(",").toList match {
           case band :: price :: Nil => acc ++ Map((band, price.toInt))
           case _ => acc
         }
       }
-
-      (concertId, map)
+      println(s"[S3] Retrieved $concertId & $prices from the $PriceBandsBucket bucket")
+      (concertId, prices)
     }
   }
 }

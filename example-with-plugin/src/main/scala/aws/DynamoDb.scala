@@ -29,7 +29,7 @@ class DynamoDb(environment: Environment) {
   val client: DynamoDbClient = chooseClient(environment)
 
   private def chooseClient(environment: Environment): DynamoDbClient = environment match {
-    case Dev => DynamoDbClient.builder().endpointOverride(URI.create("http://localhost:4569")).build()
+    case Dev => DynamoDbClient.builder().endpointOverride(URI.create("http://localhost:4566")).build()
     case _ => DynamoDbClient.builder()
       .region(Region.EU_WEST_1)
       .credentialsProvider(ProfileCredentialsProvider.builder()
@@ -43,7 +43,7 @@ object DynamoDb {
   private val ConcertInfoTable = "ConcertTickets-SalesTable-DEV"
 
   def writeConcert(concertInfo: ConcertInfo)(client: DynamoDbClient): PutItemResponse = {
-    println(s"=> Writing $concertInfo to the $ConcertInfoTable table")
+    println(s"[DynamoDb] Writing $concertInfo to the $ConcertInfoTable table")
     val request = PutItemRequest.builder().tableName(ConcertInfoTable).item(Map(
       "ConcertId" -> AttributeValue.builder().s(concertInfo.concertId).build(),
       "ArtistId" -> AttributeValue.builder().s(concertInfo.artistId).build(),
@@ -60,7 +60,8 @@ object DynamoDb {
       val artistId = fields.get("ArtistId").s()
       val ticketSales = fields.get("TicketSales").n().toInt
       val result = ConcertInfo(concertId, artistId, ticketSales)
-      println(s"=> Retrieved $result from the $ConcertInfoTable table")
+
+      println(s"[DynamoDb] Retrieved $result from the $ConcertInfoTable table")
       result
     }
   }
